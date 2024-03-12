@@ -76,7 +76,7 @@ jobs:
      # - name: Login to Amazon ECR
      #   id: login-ecr
      #   uses: aws-actions/amazon-ecr-login@v1
-      - name: Tag and push image to Amazon ECR (+latest)
+      - name: Tag and push image to DockerHub (+latest)
         run: |
           docker tag arunrana14/headcrabredis:$IMAGE_TAG arunrana14/headcrabredis:latest
           docker push arunrana14/headcrabredis:$IMAGE_TAG

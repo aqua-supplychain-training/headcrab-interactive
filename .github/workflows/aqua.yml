@@ -24,6 +24,11 @@ jobs:
         id-token: write
     
     steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Setup pipeline enforcer
@@ -40,8 +45,8 @@ jobs:
           # To enable npm/dotnet non-lock file scanning, add: --package-json / --dotnet-proj  
       - name: Build images locally
         run: |
-          docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY-victim:$IMAGE_TAG" victim
-          docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" attacker
+          docker build -t "arunrana14/headcrabredis:$IMAGE_TAG" victim
+          docker build -t "arunrana14/headcrabattacker:$IMAGE_TAG" attacker
       - name: Manifests Generation
         run: |
           curl -sLo install.sh download.codesec.aquasec.com/billy/install.sh
@@ -53,29 +58,29 @@ jobs:
           sh install.sh
           rm install.sh install.sh.checksum
           billy generate \
-              --access-token "${{ secrets.GITHUB_TOKEN }}" \
+              --access-token "${{ secrets.GIT_TOKEN }}" \
               --aqua-key "${{ secrets.AQUA_KEY }}" \
               --aqua-secret "${{ secrets.AQUA_SECRET }}" \
-              --artifact-path "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+              --artifact-path "arunrana14/headcrabredis:$IMAGE_TAG"
           billy generate \
-              --access-token "${{ secrets.GITHUB_TOKEN }}" \
+              --access-token "${{ secrets.GIT_TOKEN }}" \
               --aqua-key "${{ secrets.AQUA_KEY }}" \
               --aqua-secret "${{ secrets.AQUA_SECRET }}" \
-              --artifact-path "$ECR_REGISTRY/$ECR_REPOSITORY-victim:$IMAGE_TAG"
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+              --artifact-path "arunrana14/headcrabattacker:$IMAGE_TAG"
+     # - name: Configure AWS credentials
+     #   uses: aws-actions/configure-aws-credentials@v2
+     #   with:
+     #     role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+     #     aws-region: ${{ secrets.AWS_REGION }}
           #role-session-name: GitHubActions
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+     # - name: Login to Amazon ECR
+     #   id: login-ecr
+     #   uses: aws-actions/amazon-ecr-login@v1
       - name: Tag and push image to Amazon ECR (+latest)
         run: |
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY-victim:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY-victim:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY-victim:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY-victim:latest
+          docker tag arunrana14/headcrabredis:$IMAGE_TAG arunrana14/headcrabredis:latest
+          docker push arunrana14/headcrabredis:$IMAGE_TAG
+          docker push arunrana14/headcrabredis:latest
+          docker tag arunrana14/headcrabattacker:$IMAGE_TAG arunrana14/headcrabattacker:latest
+          docker push arunrana14/headcrabattacker:$IMAGE_TAG
+          docker push arunrana14/headcrabattacker:latest
